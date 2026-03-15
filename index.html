@@ -1,0 +1,3136 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Corner Clash</title>
+  <style>
+    :root {
+      --bg: #07111f;
+      --bg-deep: #020812;
+      --surface: rgba(9, 17, 30, 0.82);
+      --surface-strong: rgba(11, 21, 36, 0.94);
+      --surface-soft: rgba(20, 33, 53, 0.72);
+      --border: rgba(154, 174, 197, 0.18);
+      --text: #edf4ff;
+      --muted: #91a3bd;
+      --accent: #f59e0b;
+      --accent-soft: rgba(245, 158, 11, 0.2);
+      --accent-alt: #38bdf8;
+      --success: #34d399;
+      --danger: #fb7185;
+      --shadow: 0 24px 50px rgba(0, 0, 0, 0.34);
+      --radius-xl: 28px;
+      --radius-lg: 22px;
+      --radius-md: 18px;
+      --radius-sm: 14px;
+      --cell-size: 30px;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --screen-padding: clamp(16px, 3vw, 28px);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.12), transparent 34%),
+        radial-gradient(circle at top right, rgba(245, 158, 11, 0.12), transparent 30%),
+        linear-gradient(180deg, var(--bg-deep) 0%, var(--bg) 100%);
+      color: var(--text);
+      font-family: "Avenir Next", "Trebuchet MS", "Segoe UI", sans-serif;
+    }
+
+    body.modal-open {
+      overflow: hidden;
+    }
+
+    button,
+    select,
+    input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: inherit;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .app {
+      position: relative;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .screen {
+      display: none;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding:
+        calc(var(--screen-padding) + var(--safe-top))
+        var(--screen-padding)
+        calc(var(--screen-padding) + var(--safe-bottom) + 18px);
+      animation: fadeScreen 0.28s ease;
+    }
+
+    .screen.is-active {
+      display: block;
+    }
+
+    .surface {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--accent-alt);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 50px;
+      padding: 0 18px;
+      border-radius: 16px;
+      border: 1px solid transparent;
+      font-size: 15px;
+      font-weight: 800;
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+
+    .button:active {
+      transform: scale(0.985);
+    }
+
+    .button.primary {
+      background: linear-gradient(135deg, var(--accent) 0%, #f97316 100%);
+      color: #06101c;
+      box-shadow: 0 18px 35px rgba(249, 115, 22, 0.24);
+    }
+
+    .button.secondary {
+      background: rgba(20, 33, 53, 0.9);
+      border-color: rgba(154, 174, 197, 0.18);
+      color: var(--text);
+    }
+
+    .button.ghost {
+      background: transparent;
+      border-color: rgba(154, 174, 197, 0.18);
+      color: var(--muted);
+    }
+
+    .icon-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      min-height: 44px;
+      padding: 0 14px;
+      border-radius: 14px;
+      background: rgba(20, 33, 53, 0.86);
+      border: 1px solid rgba(154, 174, 197, 0.16);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .home-layout {
+      display: grid;
+      gap: 16px;
+    }
+
+    .hero-card {
+      position: relative;
+      overflow: hidden;
+      padding: 26px;
+      border-radius: var(--radius-xl);
+      background:
+        radial-gradient(circle at top left, rgba(245, 158, 11, 0.16), transparent 36%),
+        radial-gradient(circle at bottom right, rgba(56, 189, 248, 0.18), transparent 30%),
+        rgba(9, 17, 30, 0.92);
+    }
+
+    .hero-card::after {
+      content: "";
+      position: absolute;
+      inset: auto -60px -70px auto;
+      width: 180px;
+      height: 180px;
+      border-radius: 32px;
+      background:
+        linear-gradient(135deg, rgba(56, 189, 248, 0.18), rgba(245, 158, 11, 0.08)),
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 13px,
+          rgba(255, 255, 255, 0.03) 13px,
+          rgba(255, 255, 255, 0.03) 14px
+        ),
+        repeating-linear-gradient(
+          90deg,
+          transparent,
+          transparent 13px,
+          rgba(255, 255, 255, 0.03) 13px,
+          rgba(255, 255, 255, 0.03) 14px
+        );
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transform: rotate(14deg);
+      opacity: 0.92;
+      pointer-events: none;
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #d9e8ff;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .brand-badge::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.12);
+    }
+
+    .hero-title {
+      margin: 18px 0 10px;
+      font-size: clamp(36px, 8vw, 60px);
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+    }
+
+    .hero-subtitle {
+      margin: 0 0 24px;
+      max-width: 560px;
+      color: #d4e2f8;
+      font-size: 16px;
+      line-height: 1.55;
+    }
+
+    .hero-actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-bottom: 18px;
+      max-width: 420px;
+    }
+
+    .setup-pills,
+    .feature-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .setup-pills {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      max-width: 520px;
+    }
+
+    .setup-pill {
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .setup-pill span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .setup-pill strong {
+      font-size: 15px;
+      font-weight: 800;
+      color: #f8fbff;
+    }
+
+    .resume-banner,
+    .info-card {
+      padding: 18px;
+      border-radius: var(--radius-lg);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+
+    .resume-banner {
+      display: grid;
+      gap: 14px;
+    }
+
+    .resume-copy strong,
+    .info-card h2,
+    .info-card h3 {
+      display: block;
+      margin: 0 0 6px;
+      font-size: 18px;
+      letter-spacing: -0.02em;
+    }
+
+    .resume-copy p,
+    .info-card p,
+    .last-match p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .resume-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .feature-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .feature-card {
+      padding: 18px;
+      border-radius: var(--radius-lg);
+      background: rgba(20, 33, 53, 0.72);
+      border: 1px solid rgba(154, 174, 197, 0.12);
+    }
+
+    .feature-card h3 {
+      margin: 0 0 8px;
+      font-size: 17px;
+      letter-spacing: -0.02em;
+    }
+
+    .feature-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .how-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .how-step {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .how-step span {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      background: var(--accent-soft);
+      color: #ffd28c;
+      font-weight: 900;
+    }
+
+    .how-step strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+
+    .how-step p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--muted);
+    }
+
+    .game-layout {
+      display: grid;
+      gap: 12px;
+    }
+
+    .topbar {
+      position: sticky;
+      top: calc(var(--safe-top) + 10px);
+      z-index: 20;
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+      background: rgba(8, 15, 27, 0.9);
+      border-radius: 24px;
+      border: 1px solid rgba(154, 174, 197, 0.14);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.26);
+    }
+
+    .topbar-main {
+      display: grid;
+      gap: 12px;
+    }
+
+    .turn-card {
+      display: grid;
+      gap: 4px;
+    }
+
+    .turn-label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .turn-value {
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .turn-caption {
+      color: #d4e2f8;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .topbar-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .metric-pill {
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      min-height: 48px;
+    }
+
+    .metric-pill span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .metric-pill strong {
+      font-size: 16px;
+      font-weight: 800;
+      color: #f8fbff;
+    }
+
+    .score-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 8px;
+    }
+
+    .score-card {
+      padding: 12px;
+      border-radius: 18px;
+      background: rgba(20, 33, 53, 0.7);
+      border: 1px solid rgba(154, 174, 197, 0.12);
+      display: grid;
+      gap: 8px;
+      transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .score-card.is-active {
+      transform: translateY(-1px);
+      border-color: rgba(255, 255, 255, 0.18);
+      box-shadow: 0 16px 28px rgba(0, 0, 0, 0.22);
+    }
+
+    .score-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .score-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.05);
+      flex: 0 0 auto;
+    }
+
+    .score-name {
+      font-size: 13px;
+      font-weight: 800;
+      color: #f8fbff;
+    }
+
+    .score-meta {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .score-value {
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: -0.05em;
+    }
+
+    .panel-card {
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .section-head {
+      display: grid;
+      gap: 6px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: -0.04em;
+    }
+
+    .section-copy {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .palette-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .color-action {
+      position: relative;
+      overflow: hidden;
+      min-height: 76px;
+      border-radius: 18px;
+      padding: 12px 10px;
+      text-align: left;
+      color: var(--ink, #ffffff);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(0, 0, 0, 0.18)),
+        var(--swatch, #334155);
+      border: 2px solid rgba(255, 255, 255, 0.12);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 8px;
+      transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+    }
+
+    .color-action::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 55%);
+      pointer-events: none;
+    }
+
+    .color-action.is-best {
+      border-color: rgba(255, 255, 255, 0.72);
+      box-shadow:
+        0 0 0 3px rgba(255, 255, 255, 0.12),
+        0 14px 24px rgba(0, 0, 0, 0.18);
+    }
+
+    .color-action.is-selected {
+      border-color: rgba(255, 255, 255, 0.94);
+    }
+
+    .color-action.is-held,
+    .color-action:disabled {
+      opacity: 0.54;
+    }
+
+    .color-action:disabled {
+      cursor: not-allowed;
+    }
+
+    .move-label,
+    .move-preview,
+    .move-badge {
+      position: relative;
+      z-index: 1;
+    }
+
+    .move-label {
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.01em;
+    }
+
+    .move-preview {
+      display: inline-flex;
+      align-items: center;
+      align-self: flex-start;
+      min-height: 24px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(5, 10, 18, 0.26);
+      backdrop-filter: blur(6px);
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .move-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: rgba(5, 10, 18, 0.66);
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .status-text {
+      margin: 0;
+      min-height: 22px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #d8e7fb;
+    }
+
+    .status-text.tone-success {
+      color: #abf0ca;
+    }
+
+    .status-text.tone-danger {
+      color: #fdb1bf;
+    }
+
+    .board-card {
+      padding: 14px;
+    }
+
+    .board-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .board-meta h2 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: -0.04em;
+    }
+
+    .board-meta p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .board-wrap {
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      max-height: min(68vh, 760px);
+      min-height: 340px;
+      padding: 10px;
+      border-radius: 22px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 30%),
+        rgba(2, 8, 18, 0.7);
+      border: 1px solid rgba(154, 174, 197, 0.08);
+    }
+
+    .board {
+      display: grid;
+      gap: 2px;
+      width: max-content;
+      min-width: 100%;
+      justify-content: center;
+      align-content: start;
+      padding: 10px;
+      border-radius: 20px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 35%),
+        rgba(8, 15, 27, 0.92);
+      border: 1px solid rgba(154, 174, 197, 0.12);
+      transition: filter 0.3s ease;
+    }
+
+    .board.flash {
+      animation: flashBoard 0.34s ease;
+    }
+
+    .cell {
+      position: relative;
+      width: var(--cell-size);
+      height: var(--cell-size);
+      border-radius: 8px;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+    }
+
+    .cell.claimed::after {
+      content: "";
+      position: absolute;
+      inset: 3px;
+      border-radius: 5px;
+      border: 2px solid rgba(255, 255, 255, 0.92);
+    }
+
+    .cell.claimed::before {
+      content: attr(data-owner-label);
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: 900;
+      color: #0f172a;
+      z-index: 1;
+    }
+
+    .cell.blocked {
+      background:
+        repeating-linear-gradient(
+          45deg,
+          #0b1322,
+          #0b1322 6px,
+          #334155 6px,
+          #334155 12px
+        ) !important;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .cell.blocked::before,
+    .cell.blocked::after {
+      display: none;
+    }
+
+    .bottom-nav {
+      position: sticky;
+      bottom: calc(var(--safe-bottom) + 10px);
+      z-index: 15;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      padding: 12px;
+      border-radius: 22px;
+      background: rgba(8, 15, 27, 0.9);
+      border: 1px solid rgba(154, 174, 197, 0.14);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.22);
+    }
+
+    .bottom-nav .button {
+      min-height: 48px;
+      padding: 0 12px;
+      font-size: 13px;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 12px;
+      background: rgba(2, 8, 18, 0.78);
+      backdrop-filter: blur(12px);
+    }
+
+    .overlay.is-open {
+      display: flex;
+    }
+
+    .dialog {
+      width: min(100%, 780px);
+      max-height: min(92vh, 900px);
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      overflow: hidden;
+      border-radius: 26px 26px 0 0;
+      background: rgba(9, 17, 30, 0.98);
+      border: 1px solid rgba(154, 174, 197, 0.16);
+      box-shadow: 0 30px 70px rgba(0, 0, 0, 0.34);
+    }
+
+    .dialog-head,
+    .dialog-actions {
+      padding: 18px;
+    }
+
+    .dialog-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid rgba(154, 174, 197, 0.12);
+    }
+
+    .dialog-head h2 {
+      margin: 0;
+      font-size: 28px;
+      letter-spacing: -0.04em;
+    }
+
+    .dialog-head p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .dialog-body {
+      overflow: auto;
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .dialog-actions {
+      display: grid;
+      gap: 10px;
+      border-top: 1px solid rgba(154, 174, 197, 0.12);
+    }
+
+    .settings-grid,
+    .stats-grid,
+    .detail-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(20, 33, 53, 0.56);
+      border: 1px solid rgba(154, 174, 197, 0.12);
+    }
+
+    .field span,
+    .field strong {
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .field small {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .field select {
+      width: 100%;
+      min-height: 48px;
+      border-radius: 14px;
+      padding: 0 12px;
+      border: 1px solid rgba(154, 174, 197, 0.16);
+      background: rgba(7, 13, 24, 0.92);
+      color: var(--text);
+      appearance: none;
+    }
+
+    .toggle-field {
+      grid-template-columns: 1fr auto;
+      align-items: center;
+    }
+
+    .toggle-wrap {
+      position: relative;
+      width: 56px;
+      height: 34px;
+    }
+
+    .toggle-wrap input {
+      position: absolute;
+      opacity: 0;
+      inset: 0;
+      margin: 0;
+      cursor: pointer;
+    }
+
+    .toggle-ui {
+      position: absolute;
+      inset: 0;
+      border-radius: 999px;
+      background: rgba(100, 116, 139, 0.4);
+      transition: background 0.2s ease;
+    }
+
+    .toggle-ui::after {
+      content: "";
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      background: #f8fafc;
+      transition: transform 0.2s ease;
+      box-shadow: 0 10px 16px rgba(0, 0, 0, 0.22);
+    }
+
+    .toggle-wrap input:checked + .toggle-ui {
+      background: linear-gradient(135deg, var(--accent) 0%, #f97316 100%);
+    }
+
+    .toggle-wrap input:checked + .toggle-ui::after {
+      transform: translateX(22px);
+    }
+
+    .stack-card {
+      padding: 16px;
+      border-radius: 20px;
+      background: rgba(20, 33, 53, 0.56);
+      border: 1px solid rgba(154, 174, 197, 0.12);
+    }
+
+    .stack-card h3 {
+      margin: 0 0 12px;
+      font-size: 16px;
+      letter-spacing: -0.02em;
+    }
+
+    .stat-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .stat-item {
+      padding: 12px;
+      border-radius: 16px;
+      background: rgba(7, 13, 24, 0.7);
+      border: 1px solid rgba(154, 174, 197, 0.08);
+    }
+
+    .stat-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .stat-item strong {
+      display: block;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .history-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .history-item {
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(7, 13, 24, 0.7);
+      border: 1px solid rgba(154, 174, 197, 0.08);
+    }
+
+    .history-item strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 15px;
+    }
+
+    .history-item p,
+    .history-empty,
+    .rules-copy {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .history-empty {
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(7, 13, 24, 0.7);
+      border: 1px solid rgba(154, 174, 197, 0.08);
+    }
+
+    .rules-list {
+      display: grid;
+      gap: 12px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .rules-list li {
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(20, 33, 53, 0.56);
+      border: 1px solid rgba(154, 174, 197, 0.12);
+    }
+
+    .rules-list strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    .gameover-copy {
+      margin: 8px 0 0;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .gameover-score {
+      display: grid;
+      gap: 8px;
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(20, 33, 53, 0.56);
+      border: 1px solid rgba(154, 174, 197, 0.12);
+    }
+
+    .gameover-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(7, 13, 24, 0.7);
+      border: 1px solid rgba(154, 174, 197, 0.08);
+    }
+
+    .gameover-row.is-top {
+      border-color: rgba(255, 255, 255, 0.14);
+      background: linear-gradient(180deg, rgba(245, 158, 11, 0.14), rgba(7, 13, 24, 0.78));
+    }
+
+    .gameover-label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .gameover-value {
+      color: #f8fbff;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      text-align: right;
+    }
+
+    .last-match {
+      display: grid;
+      gap: 8px;
+    }
+
+    .close-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    @keyframes flashBoard {
+      0% { filter: brightness(1); }
+      50% { filter: brightness(1.22); }
+      100% { filter: brightness(1); }
+    }
+
+    @keyframes fadeScreen {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (min-width: 720px) {
+      .hero-actions,
+      .dialog-actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .feature-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .topbar-main {
+        grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+        align-items: start;
+      }
+
+      .settings-grid,
+      .detail-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .dialog {
+        border-radius: 28px;
+        align-self: center;
+      }
+    }
+
+    @media (min-width: 900px) {
+      .home-layout {
+        grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+        align-items: start;
+      }
+
+      .palette-grid {
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+      }
+
+      .game-layout {
+        gap: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section id="homeScreen" class="screen is-active" data-screen="home">
+      <div class="home-layout">
+        <div class="hero-card surface">
+          <div class="brand-badge">Corner Clash</div>
+          <h1 class="hero-title">Corner Clash</h1>
+          <p class="hero-subtitle">
+            Start in the corner. Own the board. Renk seçimini doğru yap, alanını büyüt
+            ve tahtanın kontrolünü ele geçir.
+          </p>
+
+          <div class="hero-actions">
+            <button id="homeStartBtn" class="button primary">Oyuna Başla</button>
+            <button id="homeSettingsBtn" class="button secondary">Ayarlar</button>
+          </div>
+
+          <div id="homeSetupPills" class="setup-pills"></div>
+        </div>
+
+        <div class="info-column" style="display:grid;gap:16px;">
+          <div id="resumeBanner" class="resume-banner hidden">
+            <div class="resume-copy">
+              <strong>Devam eden maç hazır</strong>
+              <p>Bitirmediğin oyuna kaldığın yerden dönebilir veya yeni maç açabilirsin.</p>
+            </div>
+            <div class="resume-actions">
+              <button id="resumeGameBtn" class="button secondary">Maça Dön</button>
+              <button id="newMatchBtn" class="button ghost">Yeni Maç</button>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <p class="eyebrow">Nasıl Oynanır?</p>
+            <h2>Hızlı başlangıç</h2>
+            <div class="how-list">
+              <div class="how-step">
+                <span>1</span>
+                <div>
+                  <strong>Köşenden başla</strong>
+                  <p>İnsan oyuncu her zaman sol üstten açılır. AI oyuncuları diğer köşeleri alır.</p>
+                </div>
+              </div>
+              <div class="how-step">
+                <span>2</span>
+                <div>
+                  <strong>Renkle yayıl</strong>
+                  <p>Seçtiğin renk, bağlantılı aynı renkteki nötr alanları anında sana çeker.</p>
+                </div>
+              </div>
+              <div class="how-step">
+                <span>3</span>
+                <div>
+                  <strong>Tahtayı kapat</strong>
+                  <p>Yüzde ilerleme %100 olduğunda en fazla alana sahip oyuncu maçı kazanır.</p>
+                </div>
+              </div>
+            </div>
+            <div style="margin-top:16px;">
+              <button id="openHelpBtn" class="button ghost" style="width:100%;">Detaylı Kurallar</button>
+            </div>
+          </div>
+
+          <div class="feature-grid">
+            <div class="feature-card">
+              <h3>Mobil öncelikli</h3>
+              <p>Tahta ana odakta kalır. Büyük haritalar akıcı şekilde kaydırılır.</p>
+            </div>
+            <div class="feature-card">
+              <h3>2P ve 4P</h3>
+              <p>Standart düello ya da dört köşeli kaos arasında tek dokunuşla geç.</p>
+            </div>
+            <div class="feature-card">
+              <h3>Turnuva ve geçmiş</h3>
+              <p>Gelişmiş alanlar ana ekrana taşmadan panel içinde korunur.</p>
+            </div>
+          </div>
+
+          <div class="info-card last-match">
+            <p class="eyebrow">Sonuç</p>
+            <h3>Son maç özeti</h3>
+            <div id="lastMatchInfo">
+              <p>Henüz tamamlanmış maç yok. Ayarlarını seçip ilk oyunu başlat.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="gameScreen" class="screen" data-screen="game">
+      <div class="game-layout">
+        <header class="topbar">
+          <div class="topbar-main">
+            <div class="turn-card">
+              <span class="turn-label">Sıra</span>
+              <div id="turnValue" class="turn-value">Sen</div>
+              <div id="turnCaption" class="turn-caption">Renk seçimini yap ve alanını büyüt.</div>
+            </div>
+
+            <div class="topbar-actions">
+              <div class="metric-pill">
+                <span>İlerleme</span>
+                <strong id="progressValue">0%</strong>
+              </div>
+              <div class="metric-pill">
+                <span>Seri</span>
+                <strong id="tournamentValue">Standart maç</strong>
+              </div>
+              <button id="pauseBtn" class="icon-button">Ayarlar</button>
+            </div>
+          </div>
+
+          <div id="scoreStrip" class="score-strip"></div>
+        </header>
+
+        <section class="panel-card surface">
+          <div class="section-head">
+            <p class="eyebrow">Hamle</p>
+            <h2>Renk seçimi</h2>
+            <p id="paletteHint" class="section-copy">Maç başladığında burada taktik ipucu göreceksin.</p>
+          </div>
+
+          <div id="palette" class="palette-grid"></div>
+          <p id="statusText" class="status-text">Hazır.</p>
+        </section>
+
+        <section class="board-card surface">
+          <div class="board-meta">
+            <div>
+              <h2 id="boardTitle">Tahta</h2>
+              <p id="boardSubtitle">Harita ve tempo bilgisi burada görünür.</p>
+            </div>
+            <button id="centerBoardBtn" class="icon-button">Konumu Sıfırla</button>
+          </div>
+
+          <div id="boardWrap" class="board-wrap">
+            <div id="board" class="board"></div>
+          </div>
+        </section>
+
+        <nav class="bottom-nav">
+          <button id="restartMatchBtn" class="button secondary">Yeniden Başlat</button>
+          <button id="historyBtn" class="button secondary">Geçmiş</button>
+          <button id="goHomeBtn" class="button ghost">Ana Ekran</button>
+        </nav>
+      </div>
+    </section>
+  </div>
+
+  <div id="settingsOverlay" class="overlay" data-panel="settings">
+    <div class="dialog">
+      <div class="dialog-head">
+        <div>
+          <p class="eyebrow">Ayarlar</p>
+          <h2>Maç kurulumu</h2>
+          <p>Ses ve tema hemen uygulanır. Tahta boyutu, mod ve zorluk yeni maçta devreye girer.</p>
+        </div>
+        <button class="icon-button" data-close-panel="settings">Kapat</button>
+      </div>
+
+      <div class="dialog-body">
+        <div class="settings-grid">
+          <label class="field">
+            <span>Oyuncu sayısı</span>
+            <small>2 oyuncuda Sen ve AI 1. 4 oyuncuda tüm köşeler dolu başlar.</small>
+            <select id="settingsPlayerCount">
+              <option value="2">2 Oyuncu</option>
+              <option value="4">4 Oyuncu</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Tahta boyutu</span>
+            <small>Full boyutları görünür tahta alanını doldurur. Büyük sürüm daha uzun maçlar üretir.</small>
+            <select id="settingsBoardSize">
+              <option value="full-large">Full (Büyük)</option>
+              <option value="full-medium">Full (Orta)</option>
+              <option value="full-small">Full (Küçük)</option>
+              <option value="8x8">8 x 8</option>
+              <option value="10x10">10 x 10</option>
+              <option value="12x12">12 x 12</option>
+              <option value="14x14">14 x 14</option>
+              <option value="16x16">16 x 16</option>
+              <option value="18x18">18 x 18</option>
+              <option value="20x20">20 x 20</option>
+              <option value="14x22">14 x 22</option>
+              <option value="16x24">16 x 24</option>
+              <option value="16x26">16 x 26</option>
+              <option value="18x24">18 x 24</option>
+              <option value="18x28">18 x 28</option>
+              <option value="18x30">18 x 30</option>
+              <option value="22x14">22 x 14</option>
+              <option value="24x16">24 x 16</option>
+              <option value="26x16">26 x 16</option>
+              <option value="24x18">24 x 18</option>
+              <option value="28x18">28 x 18</option>
+              <option value="30x18">30 x 18</option>
+              <option value="10x14">10 x 14</option>
+              <option value="12x16">12 x 16</option>
+              <option value="16x30">16 x 30</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>AI zorluğu</span>
+            <small>Normal mod yenilebilir kalır, çok zor daha sert oynar.</small>
+            <select id="settingsDifficulty">
+              <option value="easy">Kolay</option>
+              <option value="normal">Normal</option>
+              <option value="hard">Zor</option>
+              <option value="very-hard">Çok Zor</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Oyun hızı</span>
+            <small>AI düşünme gecikmesini belirler.</small>
+            <select id="settingsGameSpeed">
+              <option value="slow">Yavaş</option>
+              <option value="normal">Normal</option>
+              <option value="fast">Hızlı</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Harita tipi</span>
+            <small>Bloklu mod tahtaya rastgele engeller yerleştirir.</small>
+            <select id="settingsMapMode">
+              <option value="classic">Klasik</option>
+              <option value="blocked">Bloklu</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Renk teması</span>
+            <small>Oyun tahtasının renk setini ve arayüz aksanlarını günceller.</small>
+            <select id="settingsColorTheme">
+              <option value="classic">Klasik</option>
+              <option value="contrast">Yüksek Kontrast</option>
+              <option value="pastel">Pastel</option>
+              <option value="neon">Koyu Neon</option>
+              <option value="colorblind">Renk Körlüğü Dostu</option>
+            </select>
+          </label>
+
+          <div class="field toggle-field">
+            <div>
+              <strong>Ses efektleri</strong>
+              <small>Hamle ve oyun sonu seslerini açıp kapat.</small>
+            </div>
+            <label class="toggle-wrap">
+              <input id="settingsSound" type="checkbox" />
+              <span class="toggle-ui"></span>
+            </label>
+          </div>
+
+          <label class="field">
+            <span>Yardımlı oyun</span>
+            <small>Açıksa ipucu metni, hamle artışı ve en iyi hamle vurgusu görünür.</small>
+            <select id="settingsAssistedPlay">
+              <option value="yes">Evet</option>
+              <option value="no">Hayır</option>
+            </select>
+          </label>
+
+          <div class="field toggle-field">
+            <div>
+              <strong>Turnuva modu</strong>
+              <small>3 maçlık seri açar. Her tur sonrası seri skoru korunur.</small>
+            </div>
+            <label class="toggle-wrap">
+              <input id="settingsTournamentMode" type="checkbox" />
+              <span class="toggle-ui"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="dialog-actions">
+        <button id="saveSettingsBtn" class="button secondary">Kaydet</button>
+        <button id="startFromSettingsBtn" class="button primary">Oyuna Başla</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="historyOverlay" class="overlay" data-panel="history">
+    <div class="dialog">
+      <div class="dialog-head">
+        <div>
+          <p class="eyebrow">Geçmiş</p>
+          <h2>Maç ve turnuva detayları</h2>
+          <p>Aktif maçın özeti, seri durumu ve skor geçmişi burada tutulur.</p>
+        </div>
+        <button class="icon-button" data-close-panel="history">Kapat</button>
+      </div>
+
+      <div class="dialog-body">
+        <div class="stack-card">
+          <h3>Aktif maç</h3>
+          <div id="currentStats" class="stats-grid"></div>
+        </div>
+
+        <div class="stack-card">
+          <h3>Turnuva durumu</h3>
+          <div id="tournamentStats" class="stats-grid"></div>
+        </div>
+
+        <div class="stack-card">
+          <h3>Skor geçmişi</h3>
+          <div id="historyList" class="history-list"></div>
+        </div>
+      </div>
+
+      <div class="dialog-actions">
+        <button id="clearHistoryBtn" class="button ghost">Geçmişi Temizle</button>
+        <button class="button secondary" data-close-panel="history">Kapat</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="helpOverlay" class="overlay" data-panel="help">
+    <div class="dialog">
+      <div class="dialog-head">
+        <div>
+          <p class="eyebrow">Kurallar</p>
+          <h2>Corner Clash nasıl oynanır?</h2>
+          <p>Hızlı ama taktik derinliği olan bir köşe-ele geçirme oyunu.</p>
+        </div>
+        <button class="icon-button" data-close-panel="help">Kapat</button>
+      </div>
+
+      <div class="dialog-body">
+        <p class="rules-copy">
+          Her oyuncu kendi köşesinden başlar. Sırası gelen oyuncu, rakiplerin aktif renklerini
+          kullanmadan yeni bir renk seçer. Seçilen renk, bağlantılı aynı renkteki nötr kareleri
+          oyuncunun alanına ekler.
+        </p>
+
+        <ul class="rules-list">
+          <li>
+            <strong>Başlangıç yerleri</strong>
+            2 oyuncuda Sen sol üstte, AI 1 sağ altta başlar. 4 oyuncuda dört köşe de kullanılır.
+          </li>
+          <li>
+            <strong>Geçerli renk seçimi</strong>
+            Kendi aktif rengini veya rakip oyuncuların aktif renklerini seçemezsin.
+          </li>
+          <li>
+            <strong>Hamle önizlemesi</strong>
+            Her oynanabilir renk için artış ve hamle sonrası toplam alan sayısı gösterilir.
+          </li>
+          <li>
+            <strong>Bloklu harita</strong>
+            Blok kareler ele geçirilemez ve genişleme yollarını parçalar.
+          </li>
+          <li>
+            <strong>Maç sonu</strong>
+            Nötr alan kalmadığında oyun biter. En büyük alanı tutan oyuncu kazanır.
+          </li>
+        </ul>
+      </div>
+
+      <div class="dialog-actions">
+        <button class="button secondary" data-close-panel="help">Tamam</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="gameOverOverlay" class="overlay" data-panel="gameover">
+    <div class="dialog" style="max-width:520px;">
+      <div class="dialog-head">
+        <div>
+          <p class="eyebrow">Maç Sonu</p>
+          <h2 id="gameOverTitle">Oyun bitti</h2>
+          <p id="gameOverCopy" class="gameover-copy">Sonuç özeti burada görünecek.</p>
+        </div>
+      </div>
+
+      <div class="dialog-body">
+        <div id="gameOverScore" class="gameover-score"></div>
+      </div>
+
+      <div class="dialog-actions">
+        <button id="gameOverRestartBtn" class="button primary">Yeniden Başlat</button>
+        <button id="gameOverHomeBtn" class="button secondary">Ana Ekran</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEYS = {
+      preferences: 'corner-clash-preferences',
+      history: 'corner-clash-history'
+    };
+
+    const LABELS = {
+      playerCount: { 2: '2 Oyuncu', 4: '4 Oyuncu' },
+      difficulty: {
+        easy: 'Kolay',
+        normal: 'Normal',
+        hard: 'Zor',
+        'very-hard': 'Çok Zor'
+      },
+      mapMode: {
+        classic: 'Klasik',
+        blocked: 'Bloklu'
+      },
+      gameSpeed: {
+        slow: 'Yavaş',
+        normal: 'Normal',
+        fast: 'Hızlı'
+      },
+      colorTheme: {
+        classic: 'Klasik',
+        contrast: 'Yüksek Kontrast',
+        pastel: 'Pastel',
+        neon: 'Koyu Neon',
+        colorblind: 'Renk Körlüğü Dostu'
+      }
+    };
+
+    const COLOR_THEMES = {
+      classic: [
+        { key: 0, name: 'Kırmızı', hex: '#ef4444' },
+        { key: 1, name: 'Mavi', hex: '#3b82f6' },
+        { key: 2, name: 'Yeşil', hex: '#22c55e' },
+        { key: 3, name: 'Sarı', hex: '#facc15' },
+        { key: 4, name: 'Mor', hex: '#a855f7' },
+        { key: 5, name: 'Turuncu', hex: '#fb923c' },
+        { key: 6, name: 'Turkuaz', hex: '#14b8a6' }
+      ],
+      contrast: [
+        { key: 0, name: 'Koyu Kırmızı', hex: '#dc2626' },
+        { key: 1, name: 'Parlak Mavi', hex: '#2563eb' },
+        { key: 2, name: 'Canlı Yeşil', hex: '#16a34a' },
+        { key: 3, name: 'Altın Sarı', hex: '#eab308' },
+        { key: 4, name: 'Mor', hex: '#9333ea' },
+        { key: 5, name: 'Turuncu', hex: '#ea580c' },
+        { key: 6, name: 'Camgöbeği', hex: '#0891b2' }
+      ],
+      pastel: [
+        { key: 0, name: 'Pastel Kırmızı', hex: '#f28b82' },
+        { key: 1, name: 'Pastel Mavi', hex: '#8ab4f8' },
+        { key: 2, name: 'Pastel Yeşil', hex: '#81c995' },
+        { key: 3, name: 'Pastel Sarı', hex: '#fdd663' },
+        { key: 4, name: 'Pastel Mor', hex: '#c58af9' },
+        { key: 5, name: 'Pastel Turuncu', hex: '#f6ad55' },
+        { key: 6, name: 'Pastel Turkuaz', hex: '#76d7c4' }
+      ],
+      neon: [
+        { key: 0, name: 'Neon Kırmızı', hex: '#ff4d6d' },
+        { key: 1, name: 'Neon Mavi', hex: '#00bbf9' },
+        { key: 2, name: 'Neon Yeşil', hex: '#38f27f' },
+        { key: 3, name: 'Neon Sarı', hex: '#ffee32' },
+        { key: 4, name: 'Neon Mor', hex: '#b517ff' },
+        { key: 5, name: 'Neon Turuncu', hex: '#ff7b00' },
+        { key: 6, name: 'Neon Turkuaz', hex: '#00f5d4' }
+      ],
+      colorblind: [
+        { key: 0, name: 'Koyu Kırmızı', hex: '#d55e00' },
+        { key: 1, name: 'Mavi', hex: '#0072b2' },
+        { key: 2, name: 'Yeşilimsi', hex: '#009e73' },
+        { key: 3, name: 'Sarı', hex: '#f0e442' },
+        { key: 4, name: 'Mor', hex: '#cc79a7' },
+        { key: 5, name: 'Turuncu', hex: '#e69f00' },
+        { key: 6, name: 'Açık Mavi', hex: '#56b4e9' }
+      ]
+    };
+
+    const UI_ACCENTS = {
+      classic: { accent: '#f59e0b', soft: 'rgba(245, 158, 11, 0.2)', alt: '#38bdf8' },
+      contrast: { accent: '#eab308', soft: 'rgba(234, 179, 8, 0.18)', alt: '#2563eb' },
+      pastel: { accent: '#f28b82', soft: 'rgba(242, 139, 130, 0.2)', alt: '#8ab4f8' },
+      neon: { accent: '#ffee32', soft: 'rgba(255, 238, 50, 0.2)', alt: '#00bbf9' },
+      colorblind: { accent: '#e69f00', soft: 'rgba(230, 159, 0, 0.2)', alt: '#0072b2' }
+    };
+
+    const DEFAULT_SETTINGS = {
+      playerCount: 2,
+      boardSize: 'full-large',
+      difficulty: 'normal',
+      mapMode: 'classic',
+      gameSpeed: 'normal',
+      colorTheme: 'classic',
+      soundEnabled: true,
+      assistedPlay: true,
+      tournamentMode: false
+    };
+
+    const OWNER = {
+      neutral: 0,
+      blocked: -1
+    };
+
+    const dom = {
+      screens: {
+        home: document.getElementById('homeScreen'),
+        game: document.getElementById('gameScreen')
+      },
+      overlays: {
+        settings: document.getElementById('settingsOverlay'),
+        history: document.getElementById('historyOverlay'),
+        help: document.getElementById('helpOverlay'),
+        gameover: document.getElementById('gameOverOverlay')
+      },
+      homeStartBtn: document.getElementById('homeStartBtn'),
+      homeSettingsBtn: document.getElementById('homeSettingsBtn'),
+      resumeBanner: document.getElementById('resumeBanner'),
+      resumeGameBtn: document.getElementById('resumeGameBtn'),
+      newMatchBtn: document.getElementById('newMatchBtn'),
+      openHelpBtn: document.getElementById('openHelpBtn'),
+      homeSetupPills: document.getElementById('homeSetupPills'),
+      lastMatchInfo: document.getElementById('lastMatchInfo'),
+      turnValue: document.getElementById('turnValue'),
+      turnCaption: document.getElementById('turnCaption'),
+      progressValue: document.getElementById('progressValue'),
+      tournamentValue: document.getElementById('tournamentValue'),
+      scoreStrip: document.getElementById('scoreStrip'),
+      paletteHint: document.getElementById('paletteHint'),
+      palette: document.getElementById('palette'),
+      statusText: document.getElementById('statusText'),
+      boardTitle: document.getElementById('boardTitle'),
+      boardSubtitle: document.getElementById('boardSubtitle'),
+      boardWrap: document.getElementById('boardWrap'),
+      board: document.getElementById('board'),
+      centerBoardBtn: document.getElementById('centerBoardBtn'),
+      pauseBtn: document.getElementById('pauseBtn'),
+      restartMatchBtn: document.getElementById('restartMatchBtn'),
+      historyBtn: document.getElementById('historyBtn'),
+      goHomeBtn: document.getElementById('goHomeBtn'),
+      currentStats: document.getElementById('currentStats'),
+      tournamentStats: document.getElementById('tournamentStats'),
+      historyList: document.getElementById('historyList'),
+      clearHistoryBtn: document.getElementById('clearHistoryBtn'),
+      gameOverTitle: document.getElementById('gameOverTitle'),
+      gameOverCopy: document.getElementById('gameOverCopy'),
+      gameOverScore: document.getElementById('gameOverScore'),
+      gameOverRestartBtn: document.getElementById('gameOverRestartBtn'),
+      gameOverHomeBtn: document.getElementById('gameOverHomeBtn'),
+      settingsPlayerCount: document.getElementById('settingsPlayerCount'),
+      settingsBoardSize: document.getElementById('settingsBoardSize'),
+      settingsDifficulty: document.getElementById('settingsDifficulty'),
+      settingsMapMode: document.getElementById('settingsMapMode'),
+      settingsGameSpeed: document.getElementById('settingsGameSpeed'),
+      settingsColorTheme: document.getElementById('settingsColorTheme'),
+      settingsSound: document.getElementById('settingsSound'),
+      settingsAssistedPlay: document.getElementById('settingsAssistedPlay'),
+      settingsTournamentMode: document.getElementById('settingsTournamentMode'),
+      saveSettingsBtn: document.getElementById('saveSettingsBtn'),
+      startFromSettingsBtn: document.getElementById('startFromSettingsBtn')
+    };
+
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    const audioCtx = AudioCtx ? new AudioCtx() : null;
+
+    const state = {
+      settings: { ...DEFAULT_SETTINGS },
+      matchConfig: { ...DEFAULT_SETTINGS },
+      colors: COLOR_THEMES.classic,
+      rows: 12,
+      cols: 12,
+      board: [],
+      players: [],
+      currentPlayerIndex: 0,
+      gameStarted: false,
+      gameOver: false,
+      gameOverShown: false,
+      statusMessage: 'Hazır.',
+      statusTone: 'neutral',
+      history: [],
+      currentScreen: 'home',
+      openPanel: null,
+      aiTimer: null,
+      tournament: {
+        active: false,
+        round: 0,
+        totalRounds: 3,
+        playerWins: 0,
+        aiWins: 0,
+        draws: 0
+      }
+    };
+
+    function randInt(max) {
+      return Math.floor(Math.random() * max);
+    }
+
+    function deepCloneBoard(board) {
+      return board.map((row) => row.map((cell) => ({ ...cell })));
+    }
+
+    function safeParseJSON(raw, fallback) {
+      try {
+        return raw ? JSON.parse(raw) : fallback;
+      } catch (error) {
+        return fallback;
+      }
+    }
+
+    function readStorage(key, fallback) {
+      try {
+        return safeParseJSON(localStorage.getItem(key), fallback);
+      } catch (error) {
+        return fallback;
+      }
+    }
+
+    function writeStorage(key, value) {
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+      } catch (error) {
+        return;
+      }
+    }
+
+    function loadPersistedState() {
+      const savedSettings = readStorage(STORAGE_KEYS.preferences, DEFAULT_SETTINGS);
+      const normalizedBoardSize = savedSettings.boardSize === 'full'
+        ? 'full-large'
+        : (savedSettings.boardSize || DEFAULT_SETTINGS.boardSize);
+      state.settings = {
+        ...DEFAULT_SETTINGS,
+        ...savedSettings,
+        boardSize: normalizedBoardSize,
+        playerCount: Number(savedSettings.playerCount || DEFAULT_SETTINGS.playerCount)
+      };
+      state.history = readStorage(STORAGE_KEYS.history, []);
+      if (!Array.isArray(state.history)) {
+        state.history = [];
+      }
+    }
+
+    function persistSettings() {
+      writeStorage(STORAGE_KEYS.preferences, state.settings);
+    }
+
+    function persistHistory() {
+      writeStorage(STORAGE_KEYS.history, state.history);
+    }
+
+    function applyThemePalette() {
+      state.colors = COLOR_THEMES[state.settings.colorTheme] || COLOR_THEMES.classic;
+    }
+
+    function applyInterfaceAccent() {
+      const accent = UI_ACCENTS[state.settings.colorTheme] || UI_ACCENTS.classic;
+      document.documentElement.style.setProperty('--accent', accent.accent);
+      document.documentElement.style.setProperty('--accent-soft', accent.soft);
+      document.documentElement.style.setProperty('--accent-alt', accent.alt);
+    }
+
+    function syncSettingsForm() {
+      dom.settingsPlayerCount.value = String(state.settings.playerCount);
+      dom.settingsBoardSize.value = state.settings.boardSize;
+      dom.settingsDifficulty.value = state.settings.difficulty;
+      dom.settingsMapMode.value = state.settings.mapMode;
+      dom.settingsGameSpeed.value = state.settings.gameSpeed;
+      dom.settingsColorTheme.value = state.settings.colorTheme;
+      dom.settingsSound.checked = Boolean(state.settings.soundEnabled);
+      dom.settingsAssistedPlay.value = state.settings.assistedPlay ? 'yes' : 'no';
+      dom.settingsTournamentMode.checked = Boolean(state.settings.tournamentMode);
+      updateSettingsPrimaryButton();
+    }
+
+    function readSettingsForm() {
+      return {
+        playerCount: Number(dom.settingsPlayerCount.value),
+        boardSize: dom.settingsBoardSize.value,
+        difficulty: dom.settingsDifficulty.value,
+        mapMode: dom.settingsMapMode.value,
+        gameSpeed: dom.settingsGameSpeed.value,
+        colorTheme: dom.settingsColorTheme.value,
+        soundEnabled: dom.settingsSound.checked,
+        assistedPlay: dom.settingsAssistedPlay.value === 'yes',
+        tournamentMode: dom.settingsTournamentMode.checked
+      };
+    }
+
+    function updateSettingsPrimaryButton() {
+      const tournamentMode = dom.settingsTournamentMode.checked;
+      dom.startFromSettingsBtn.textContent = tournamentMode ? 'Turnuva Başlat' : 'Oyuna Başla';
+    }
+
+    function commitSettings({ showStatus = false } = {}) {
+      state.settings = {
+        ...state.settings,
+        ...readSettingsForm()
+      };
+      applyThemePalette();
+      applyInterfaceAccent();
+      persistSettings();
+      renderHomeSummary();
+      renderHistoryPanel();
+
+      if (state.gameStarted) {
+        state.matchConfig.gameSpeed = state.settings.gameSpeed;
+        state.matchConfig.colorTheme = state.settings.colorTheme;
+        state.matchConfig.assistedPlay = state.settings.assistedPlay;
+        updateUI();
+      }
+
+      if (showStatus && state.currentScreen === 'game') {
+        setStatus('Ayarlar kaydedildi. Tema ve ses anında güncellendi.', 'neutral');
+      }
+    }
+
+    function showScreen(name) {
+      Object.entries(dom.screens).forEach(([key, element]) => {
+        element.classList.toggle('is-active', key === name);
+      });
+      state.currentScreen = name;
+      renderHomeSummary();
+      if (name === 'game' && state.gameStarted) {
+        updateUI();
+      }
+    }
+
+    function openPanel(name) {
+      closeAllPanels();
+      const overlay = dom.overlays[name];
+      if (!overlay) return;
+      overlay.classList.add('is-open');
+      state.openPanel = name;
+      document.body.classList.add('modal-open');
+
+      if (name === 'settings') {
+        syncSettingsForm();
+      }
+      if (name === 'history') {
+        renderHistoryPanel();
+      }
+    }
+
+    function closePanel(name) {
+      const overlay = dom.overlays[name];
+      if (!overlay) return;
+      overlay.classList.remove('is-open');
+      if (state.openPanel === name) {
+        state.openPanel = null;
+      }
+      document.body.classList.remove('modal-open');
+    }
+
+    function closeAllPanels() {
+      Object.values(dom.overlays).forEach((overlay) => overlay.classList.remove('is-open'));
+      state.openPanel = null;
+      document.body.classList.remove('modal-open');
+    }
+
+    function getSettingLabel(group, key) {
+      const value = LABELS[group] ? LABELS[group][key] : key;
+      return value || key;
+    }
+
+    function formatBoardSizeLabel(boardSize) {
+      if (boardSize === 'full' || boardSize === 'full-large') {
+        return 'Full (Büyük)';
+      }
+      if (boardSize === 'full-medium') {
+        return 'Full (Orta)';
+      }
+      if (boardSize === 'full-small') {
+        return 'Full (Küçük)';
+      }
+      return boardSize.replace('x', ' x ');
+    }
+
+    function isFullBoardSize(boardSize) {
+      return String(boardSize).startsWith('full');
+    }
+
+    function getFullBoardDensity(boardSize) {
+      if (boardSize === 'full-small') {
+        return { targetCell: 28, minRows: 10, minCols: 10 };
+      }
+      if (boardSize === 'full-medium') {
+        return { targetCell: 24, minRows: 12, minCols: 12 };
+      }
+      return { targetCell: 20, minRows: 14, minCols: 14 };
+    }
+
+    function getBoardViewportMetrics() {
+      const wrapRect = dom.boardWrap.getBoundingClientRect();
+      const measuredWidth = Math.floor(wrapRect.width);
+      const measuredHeight = Math.floor(wrapRect.height);
+
+      if (measuredWidth > 0 && measuredHeight > 0) {
+        return { width: measuredWidth, height: measuredHeight };
+      }
+
+      const fallbackWidth = Math.max(320, window.innerWidth - 48);
+      const fallbackHeight = Math.max(340, Math.min(window.innerHeight * 0.62, 760));
+      return { width: fallbackWidth, height: fallbackHeight };
+    }
+
+    function getFullBoardLayout(boardSize) {
+      const { width, height } = getBoardViewportMetrics();
+      const { targetCell, minRows, minCols } = getFullBoardDensity(boardSize);
+      const gap = 2;
+      const usableWidth = Math.max(220, width - 40);
+      const usableHeight = Math.max(220, height - 40);
+
+      let cols = Math.max(
+        minCols,
+        Math.floor((usableWidth + gap) / (targetCell + gap))
+      );
+      let cellSize = Math.floor((usableWidth - ((cols - 1) * gap)) / cols);
+      let rows = Math.floor((usableHeight + gap) / (cellSize + gap));
+
+      while (rows < minRows && cols < 120) {
+        cols += 1;
+        cellSize = Math.floor((usableWidth - ((cols - 1) * gap)) / cols);
+        rows = Math.floor((usableHeight + gap) / (cellSize + gap));
+      }
+
+      cellSize = Math.max(10, cellSize);
+      rows = Math.max(1, rows);
+
+      return { rows, cols, cellSize };
+    }
+
+    function resolveBoardSizeSetting(boardSize) {
+      if (!isFullBoardSize(boardSize)) {
+        const [rows, cols] = boardSize.split('x').map(Number);
+        return { rows, cols };
+      }
+
+      const { rows, cols } = getFullBoardLayout(boardSize);
+      return { rows, cols };
+    }
+
+    function renderHomeSummary() {
+      dom.homeSetupPills.innerHTML = [
+        {
+          label: 'Mod',
+          value: getSettingLabel('playerCount', state.settings.playerCount)
+        },
+        {
+          label: 'Tahta',
+          value: formatBoardSizeLabel(state.settings.boardSize)
+        },
+        {
+          label: 'Zorluk',
+          value: getSettingLabel('difficulty', state.settings.difficulty)
+        },
+        {
+          label: 'Tema',
+          value: getSettingLabel('colorTheme', state.settings.colorTheme)
+        }
+      ].map((item) => `
+        <div class="setup-pill">
+          <span>${item.label}</span>
+          <strong>${item.value}</strong>
+        </div>
+      `).join('');
+
+      const lastMatch = state.history[state.history.length - 1];
+      if (!lastMatch) {
+        dom.lastMatchInfo.innerHTML = '<p>Henüz tamamlanmış maç yok. Ayarlarını seçip ilk oyunu başlat.</p>';
+      } else {
+        dom.lastMatchInfo.innerHTML = `
+          <p><strong style="color:#f8fbff;">${lastMatch.title}</strong></p>
+          <p>${lastMatch.scoreLine}</p>
+          <p>${lastMatch.size} • ${lastMatch.playerCount} Oyuncu • ${lastMatch.mapMode} • ${lastMatch.difficulty}</p>
+        `;
+      }
+
+      const hasActiveMatch = state.gameStarted && !state.gameOver;
+      dom.resumeBanner.classList.toggle('hidden', !hasActiveMatch);
+    }
+
+    function getNeighbors(r, c, rows, cols) {
+      const list = [];
+      if (r > 0) list.push([r - 1, c]);
+      if (r < rows - 1) list.push([r + 1, c]);
+      if (c > 0) list.push([r, c - 1]);
+      if (c < cols - 1) list.push([r, c + 1]);
+      return list;
+    }
+
+    function getCellSize(rows, cols, boardSize = state.gameStarted ? state.matchConfig.boardSize : state.settings.boardSize) {
+      if (isFullBoardSize(boardSize)) {
+        const { cellSize } = getFullBoardLayout(boardSize);
+        return cellSize;
+      }
+
+      const maxSide = Math.max(rows, cols);
+      let size = 32;
+      if (maxSide >= 30) size = 17;
+      else if (maxSide >= 28) size = 18;
+      else if (maxSide >= 24) size = 20;
+      else if (maxSide >= 20) size = 23;
+      else if (maxSide >= 16) size = 26;
+      else if (maxSide >= 12) size = 30;
+
+      if (window.innerWidth < 390) size -= 1;
+      if (window.innerWidth < 360) size -= 1;
+      return Math.max(16, size);
+    }
+
+    function setCellSize(rows, cols, boardSize = state.gameStarted ? state.matchConfig.boardSize : state.settings.boardSize) {
+      document.documentElement.style.setProperty('--cell-size', `${getCellSize(rows, cols, boardSize)}px`);
+    }
+
+    function getAiDelay() {
+      const speed = state.gameStarted ? state.matchConfig.gameSpeed : state.settings.gameSpeed;
+      if (speed === 'slow') return 1400;
+      if (speed === 'fast') return 450;
+      return 900;
+    }
+
+    function createPlayers(playerCount) {
+      if (playerCount === 2) {
+        return [
+          { id: 1, name: 'Sen', short: 'S', type: 'human', color: null },
+          { id: 2, name: 'AI 1', short: 'A1', type: 'ai', color: null }
+        ];
+      }
+
+      return [
+        { id: 1, name: 'Sen', short: 'S', type: 'human', color: null },
+        { id: 2, name: 'AI 1', short: 'A1', type: 'ai', color: null },
+        { id: 3, name: 'AI 2', short: 'A2', type: 'ai', color: null },
+        { id: 4, name: 'AI 3', short: 'A3', type: 'ai', color: null }
+      ];
+    }
+
+    function getStartPositions(rows, cols, playerCount) {
+      if (playerCount === 2) {
+        return [[0, 0], [rows - 1, cols - 1]];
+      }
+      return [[0, 0], [0, cols - 1], [rows - 1, 0], [rows - 1, cols - 1]];
+    }
+
+    function createBlockedPattern(board, rows, cols) {
+      const total = rows * cols;
+      const blockTarget = Math.max(4, Math.floor(total * 0.08));
+      let placed = 0;
+      let attempts = 0;
+
+      while (placed < blockTarget && attempts < blockTarget * 24) {
+        attempts++;
+        const r = randInt(rows);
+        const c = randInt(cols);
+        const inReservedCorner =
+          (r === 0 && c === 0) ||
+          (r === rows - 1 && c === cols - 1) ||
+          (r === 0 && c === cols - 1) ||
+          (r === rows - 1 && c === 0);
+
+        if (inReservedCorner) continue;
+        if (board[r][c].blocked) continue;
+        if ((r <= 1 && c <= 1) || (r >= rows - 2 && c >= cols - 2)) continue;
+
+        board[r][c].blocked = true;
+        board[r][c].owner = OWNER.blocked;
+        placed++;
+      }
+    }
+
+    function createBoard(rows, cols, mapMode) {
+      const board = [];
+      for (let r = 0; r < rows; r++) {
+        const row = [];
+        for (let c = 0; c < cols; c++) {
+          row.push({
+            color: randInt(state.colors.length),
+            owner: OWNER.neutral,
+            blocked: false
+          });
+        }
+        board.push(row);
+      }
+
+      if (mapMode === 'blocked') {
+        createBlockedPattern(board, rows, cols);
+      }
+
+      const startPositions = getStartPositions(rows, cols, state.settings.playerCount);
+      startPositions.forEach(([r, c], index) => {
+        board[r][c].blocked = false;
+        board[r][c].owner = state.players[index].id;
+      });
+
+      const used = new Set();
+      startPositions.forEach(([r, c], index) => {
+        let color = board[r][c].color;
+        while (used.has(color)) {
+          color = (color + 1) % state.colors.length;
+        }
+        board[r][c].color = color;
+        state.players[index].color = color;
+        used.add(color);
+      });
+
+      return board;
+    }
+
+    function absorb(board, ownerId, selectedColor) {
+      const rows = board.length;
+      const cols = board[0].length;
+      const queue = [];
+      const visited = new Set();
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          if (board[r][c].owner === ownerId) {
+            board[r][c].color = selectedColor;
+            queue.push([r, c]);
+            visited.add(`${r},${c}`);
+          }
+        }
+      }
+
+      while (queue.length > 0) {
+        const [r, c] = queue.shift();
+        for (const [nr, nc] of getNeighbors(r, c, rows, cols)) {
+          const key = `${nr},${nc}`;
+          const cell = board[nr][nc];
+          if (visited.has(key)) continue;
+          if (cell.blocked) continue;
+          if (cell.owner === ownerId || (cell.owner === OWNER.neutral && cell.color === selectedColor)) {
+            cell.owner = ownerId;
+            cell.color = selectedColor;
+            visited.add(key);
+            queue.push([nr, nc]);
+          }
+        }
+      }
+
+      let expanded = true;
+      while (expanded) {
+        expanded = false;
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const cell = board[r][c];
+            if (cell.blocked) continue;
+            if (cell.owner !== OWNER.neutral || cell.color !== selectedColor) continue;
+
+            const neighbors = getNeighbors(r, c, rows, cols);
+            if (neighbors.some(([nr, nc]) => board[nr][nc].owner === ownerId)) {
+              cell.owner = ownerId;
+              expanded = true;
+            }
+          }
+        }
+      }
+    }
+
+    function countOwnedGeneric(board, playersSnapshot) {
+      const scores = {};
+      playersSnapshot.forEach((player) => {
+        scores[player.id] = 0;
+      });
+
+      let neutral = 0;
+      let blocked = 0;
+
+      for (const row of board) {
+        for (const cell of row) {
+          if (cell.blocked) blocked++;
+          else if (cell.owner === OWNER.neutral) neutral++;
+          else if (scores[cell.owner] !== undefined) scores[cell.owner]++;
+        }
+      }
+
+      return { scores, neutral, blocked };
+    }
+
+    function countOwned(board) {
+      return countOwnedGeneric(board, state.players);
+    }
+
+    function getActivePlayer() {
+      return state.players[state.currentPlayerIndex];
+    }
+
+    function getValidColorsForPlayer(player) {
+      const unavailable = new Set(
+        state.players
+          .filter((other) => other.id !== player.id && other.color !== null)
+          .map((other) => other.color)
+      );
+
+      return state.colors
+        .filter((color) => color.key !== player.color && !unavailable.has(color.key))
+        .map((color) => color.key);
+    }
+
+    function getValidColorsGeneric(player, playersSnapshot) {
+      const unavailable = new Set(
+        playersSnapshot
+          .filter((other) => other.id !== player.id && other.color !== null)
+          .map((other) => other.color)
+      );
+
+      return state.colors
+        .filter((color) => color.key !== player.color && !unavailable.has(color.key))
+        .map((color) => color.key);
+    }
+
+    function getMovePreview(player, color) {
+      const simulatedBoard = deepCloneBoard(state.board);
+      const before = countOwned(simulatedBoard);
+      const beforeScore = before.scores[player.id] || 0;
+
+      absorb(simulatedBoard, player.id, color);
+
+      const after = countOwned(simulatedBoard);
+      const afterScore = after.scores[player.id] || 0;
+
+      return {
+        gain: Math.max(0, afterScore - beforeScore),
+        total: afterScore
+      };
+    }
+
+    function evaluateMove(board, ownerId, color, playersSnapshot) {
+      const simulatedBoard = deepCloneBoard(board);
+      absorb(simulatedBoard, ownerId, color);
+
+      const counts = countOwnedGeneric(simulatedBoard, playersSnapshot);
+      const mine = counts.scores[ownerId] || 0;
+      const others = Object.entries(counts.scores)
+        .filter(([id]) => Number(id) !== ownerId)
+        .reduce((sum, [, value]) => sum + value, 0);
+
+      let frontier = 0;
+      const rows = simulatedBoard.length;
+      const cols = simulatedBoard[0].length;
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const cell = simulatedBoard[r][c];
+          if (cell.blocked || cell.owner !== ownerId) continue;
+
+          const neighbors = getNeighbors(r, c, rows, cols);
+          for (const [nr, nc] of neighbors) {
+            if (!simulatedBoard[nr][nc].blocked && simulatedBoard[nr][nc].owner === OWNER.neutral) {
+              frontier++;
+              break;
+            }
+          }
+        }
+      }
+
+      return {
+        score: (mine - others) * 10 + frontier * 2,
+        board: simulatedBoard,
+        counts
+      };
+    }
+
+    function getAiMove(activePlayer) {
+      const matchConfig = state.matchConfig;
+      const validColors = getValidColorsForPlayer(activePlayer);
+      if (validColors.length === 0) return null;
+
+      const scoredMoves = validColors.map((color) => {
+        const snapshot = state.players.map((player) => ({
+          id: player.id,
+          color: player.id === activePlayer.id ? color : player.color
+        }));
+
+        const evaluation = evaluateMove(state.board, activePlayer.id, color, snapshot);
+        return {
+          color,
+          value: evaluation.score,
+          board: evaluation.board,
+          counts: evaluation.counts
+        };
+      }).sort((a, b) => b.value - a.value);
+
+      const fourPlayerMode = matchConfig.playerCount === 4;
+
+      if (matchConfig.difficulty === 'easy') {
+        const poolSize = fourPlayerMode ? 5 : 3;
+        const pool = scoredMoves.slice(0, Math.min(poolSize, scoredMoves.length));
+        return pool[Math.floor(Math.random() * pool.length)] || scoredMoves[0];
+      }
+
+      if (matchConfig.difficulty === 'normal') {
+        const poolSize = fourPlayerMode ? 4 : 2;
+        const pool = scoredMoves.slice(0, Math.min(poolSize, scoredMoves.length));
+
+        if (fourPlayerMode) {
+          const weights = [0.34, 0.28, 0.22, 0.16];
+          const random = Math.random();
+          let accumulator = 0;
+          for (let index = 0; index < pool.length; index++) {
+            accumulator += weights[index] || 0;
+            if (random <= accumulator) {
+              return pool[index];
+            }
+          }
+        }
+
+        return pool[Math.floor(Math.random() * pool.length)] || scoredMoves[0];
+      }
+
+      if (matchConfig.difficulty === 'hard') {
+        if (fourPlayerMode) {
+          const topMoves = scoredMoves.slice(0, Math.min(2, scoredMoves.length));
+          return topMoves[Math.floor(Math.random() * topMoves.length)] || scoredMoves[0];
+        }
+        return scoredMoves[0];
+      }
+
+      let bestMove = null;
+      for (const move of scoredMoves) {
+        const nextPlayers = state.players.map((player) => ({
+          id: player.id,
+          color: player.id === activePlayer.id ? move.color : player.color
+        }));
+
+        const nextIndex = (state.currentPlayerIndex + 1) % state.players.length;
+        const nextPlayer = nextPlayers[nextIndex];
+        const nextValidColors = getValidColorsGeneric(nextPlayer, nextPlayers);
+        let penalty = 0;
+
+        for (const nextColor of nextValidColors) {
+          const nextEvaluation = evaluateMove(
+            move.board,
+            nextPlayer.id,
+            nextColor,
+            nextPlayers.map((player) => ({
+              id: player.id,
+              color: player.id === nextPlayer.id ? nextColor : player.color
+            }))
+          );
+
+          const factor = nextPlayer.id === 1 ? 0.8 : 0.55;
+          penalty = Math.max(penalty, nextEvaluation.score * factor);
+        }
+
+        const adjustedScore = move.value - penalty;
+        if (!bestMove || adjustedScore > bestMove.adjustedScore) {
+          bestMove = {
+            ...move,
+            adjustedScore
+          };
+        }
+      }
+
+      return bestMove || scoredMoves[0];
+    }
+
+    function getReadableTextColor(hex) {
+      const normalized = hex.replace('#', '');
+      const full = normalized.length === 3
+        ? normalized.split('').map((char) => char + char).join('')
+        : normalized;
+
+      const red = parseInt(full.slice(0, 2), 16);
+      const green = parseInt(full.slice(2, 4), 16);
+      const blue = parseInt(full.slice(4, 6), 16);
+      const luminance = (0.299 * red) + (0.587 * green) + (0.114 * blue);
+      return luminance > 160 ? '#08111d' : '#ffffff';
+    }
+
+    function setStatus(message, tone = 'neutral') {
+      state.statusMessage = message;
+      state.statusTone = tone;
+      renderStatus();
+    }
+
+    function renderStatus() {
+      dom.statusText.textContent = state.statusMessage;
+      dom.statusText.className = `status-text ${state.statusTone === 'neutral' ? '' : `tone-${state.statusTone}`}`.trim();
+    }
+
+    function renderScoreStrip(counts) {
+      dom.scoreStrip.innerHTML = state.players.map((player) => {
+        const playerColorIndex = player.color !== null ? player.color : 0;
+        const swatch = state.colors[playerColorIndex] ? state.colors[playerColorIndex].hex : '#64748b';
+        const active = player.id === getActivePlayer().id;
+
+        return `
+          <div class="score-card ${active ? 'is-active' : ''}">
+            <div class="score-head">
+              <span class="score-dot" style="background:${swatch};"></span>
+              <div>
+                <div class="score-name">${player.name}</div>
+                <div class="score-meta">${player.type === 'human' ? 'İnsan' : 'AI'}</div>
+              </div>
+            </div>
+            <div class="score-value">${counts.scores[player.id] || 0}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderPalette() {
+      dom.palette.innerHTML = '';
+      const activePlayer = getActivePlayer();
+      const assistedPlay = state.gameStarted ? state.matchConfig.assistedPlay : state.settings.assistedPlay;
+      const validColors = new Set(getValidColorsForPlayer(activePlayer));
+      const previews = {};
+      let bestMove = null;
+
+      if (!state.gameOver && activePlayer.type === 'human' && assistedPlay) {
+        state.colors.forEach((color) => {
+          if (!validColors.has(color.key)) return;
+          const preview = getMovePreview(activePlayer, color.key);
+          previews[color.key] = preview;
+
+          if (
+            !bestMove ||
+            preview.total > bestMove.total ||
+            (preview.total === bestMove.total && preview.gain > bestMove.gain)
+          ) {
+            bestMove = {
+              colorKey: color.key,
+              colorName: color.name,
+              ...preview
+            };
+          }
+        });
+      }
+
+      if (state.gameOver) {
+        dom.paletteHint.textContent = 'Maç tamamlandı. Yeni oyun başlatabilir veya geçmişi inceleyebilirsin.';
+      } else if (activePlayer.type === 'ai') {
+        dom.paletteHint.textContent = `${activePlayer.name} en iyi açılımı hesaplıyor.`;
+      } else if (assistedPlay && bestMove) {
+        const bestMoveText = bestMove.gain > 0
+          ? `İpucu: ${bestMove.colorName} ile +${bestMove.gain} alıp ${bestMove.total} toplam alana çıkarsın.`
+          : `İpucu: ${bestMove.colorName} seni ${bestMove.total} toplam alana taşır.`;
+        dom.paletteHint.textContent = bestMoveText;
+      } else if (!assistedPlay) {
+        dom.paletteHint.textContent = 'Yardımlı oyun kapalı. Renkleri sezgine göre seç.';
+      } else {
+        dom.paletteHint.textContent = 'Sıra sende. Renk seç ve alanını genişlet.';
+      }
+
+      state.colors.forEach((color) => {
+        const button = document.createElement('button');
+        const preview = previews[color.key];
+        const isCurrent = color.key === activePlayer.color;
+        const holder = state.players.find((player) => player.color === color.key && player.id !== activePlayer.id);
+        const isValid = !state.gameOver && activePlayer.type === 'human' && validColors.has(color.key);
+        const isBest = Boolean(assistedPlay && bestMove && bestMove.colorKey === color.key);
+
+        let previewText = 'Kapalı';
+        if (assistedPlay && isValid && preview) {
+          previewText = preview.gain > 0 ? `+${preview.gain} / ${preview.total}` : `${preview.total} toplam`;
+        } else if (assistedPlay && isCurrent) {
+          previewText = 'Aktif';
+        } else if (assistedPlay && holder) {
+          previewText = holder.short;
+        }
+
+        button.type = 'button';
+        button.className = [
+          'color-action',
+          isBest ? 'is-best' : '',
+          isCurrent ? 'is-selected' : '',
+          holder ? 'is-held' : ''
+        ].filter(Boolean).join(' ');
+        button.style.setProperty('--swatch', color.hex);
+        button.style.setProperty('--ink', getReadableTextColor(color.hex));
+        button.disabled = !isValid;
+        button.setAttribute('aria-label', `${color.name}${isValid && preview ? `, ${previewText}` : ''}`);
+        button.innerHTML = `
+          ${isBest ? '<span class="move-badge">En iyi</span>' : ''}
+          <span class="move-label">${color.name}</span>
+          ${assistedPlay ? `<span class="move-preview">${previewText}</span>` : ''}
+        `;
+
+        if (isValid) {
+          button.addEventListener('click', () => handleHumanMove(color.key));
+        }
+
+        dom.palette.appendChild(button);
+      });
+    }
+
+    function renderBoard() {
+      dom.board.innerHTML = '';
+      dom.board.style.gridTemplateColumns = `repeat(${state.cols}, var(--cell-size))`;
+
+      state.board.forEach((row) => {
+        row.forEach((cell) => {
+          const cellEl = document.createElement('div');
+          cellEl.className = 'cell';
+
+          if (cell.blocked) {
+            cellEl.classList.add('blocked');
+          } else {
+            cellEl.style.background = state.colors[cell.color].hex;
+            if (cell.owner !== OWNER.neutral) {
+              const ownerPlayer = state.players.find((player) => player.id === cell.owner);
+              cellEl.classList.add('claimed');
+              cellEl.dataset.ownerLabel = ownerPlayer ? ownerPlayer.short : 'AI';
+            }
+          }
+
+          dom.board.appendChild(cellEl);
+        });
+      });
+    }
+
+    function formatTime(timestamp) {
+      try {
+        return new Intl.DateTimeFormat('tr-TR', {
+          dateStyle: 'short',
+          timeStyle: 'short'
+        }).format(new Date(timestamp));
+      } catch (error) {
+        return '';
+      }
+    }
+
+    function renderHistoryList() {
+      if (state.history.length === 0) {
+        dom.historyList.innerHTML = '<div class="history-empty">Henüz tamamlanmış maç yok.</div>';
+        return;
+      }
+
+      dom.historyList.innerHTML = state.history.slice().reverse().map((item) => `
+        <div class="history-item">
+          <strong>${item.title}</strong>
+          <p>${item.scoreLine}</p>
+          <p>${item.size} • ${item.playerCount} Oyuncu • ${item.mapMode} • ${item.difficulty}</p>
+          <p>${formatTime(item.finishedAt)}</p>
+        </div>
+      `).join('');
+    }
+
+    function renderCurrentStats(counts) {
+      if (!state.gameStarted) {
+        dom.currentStats.innerHTML = [
+          { label: 'Durum', value: 'Henüz maç yok' },
+          { label: 'Hazır profil', value: getSettingLabel('playerCount', state.settings.playerCount) },
+          { label: 'Tahta', value: formatBoardSizeLabel(state.settings.boardSize) },
+          { label: 'Tema', value: getSettingLabel('colorTheme', state.settings.colorTheme) }
+        ].map(renderStatItem).join('');
+        return;
+      }
+
+      const matchConfig = state.matchConfig;
+      const playableCells = (state.rows * state.cols) - counts.blocked;
+      const claimedCells = Object.values(counts.scores).reduce((sum, value) => sum + value, 0);
+      const progress = playableCells > 0 ? Math.round((claimedCells / playableCells) * 100) : 100;
+
+      dom.currentStats.innerHTML = [
+        { label: 'Sıra', value: getActivePlayer().name },
+        { label: 'Tahta', value: `${state.rows} x ${state.cols}` },
+        { label: 'Boş alan', value: counts.neutral },
+        { label: 'Blok kare', value: counts.blocked },
+        { label: 'İlerleme', value: `${progress}%` },
+        { label: 'Harita', value: getSettingLabel('mapMode', matchConfig.mapMode) }
+      ].map(renderStatItem).join('');
+    }
+
+    function renderTournamentStats() {
+      const modeText = state.tournament.active
+        ? `Tur ${state.tournament.round + 1}/${state.tournament.totalRounds}`
+        : (state.settings.tournamentMode ? 'Hazır' : 'Kapalı');
+
+      dom.tournamentStats.innerHTML = [
+        { label: 'Durum', value: state.tournament.active ? 'Aktif' : 'Standart' },
+        { label: 'Seri', value: modeText },
+        { label: 'Sen', value: state.tournament.playerWins },
+        { label: 'AI', value: state.tournament.aiWins },
+        { label: 'Beraberlik', value: state.tournament.draws },
+        { label: 'Hedef', value: `${state.tournament.totalRounds} maç` }
+      ].map(renderStatItem).join('');
+    }
+
+    function renderStatItem(item) {
+      return `
+        <div class="stat-item">
+          <span>${item.label}</span>
+          <strong>${item.value}</strong>
+        </div>
+      `;
+    }
+
+    function renderHistoryPanel() {
+      if (!state.gameStarted) {
+        renderCurrentStats({ scores: {}, neutral: 0, blocked: 0 });
+      } else {
+        renderCurrentStats(countOwned(state.board));
+      }
+      renderTournamentStats();
+      renderHistoryList();
+    }
+
+    function renderTopSummary(counts) {
+      const matchConfig = state.matchConfig;
+      const playableCells = (state.rows * state.cols) - counts.blocked;
+      const claimedCells = Object.values(counts.scores).reduce((sum, value) => sum + value, 0);
+      const progress = playableCells > 0 ? Math.round((claimedCells / playableCells) * 100) : 100;
+      const activePlayer = getActivePlayer();
+      const nextPlayer = state.players[(state.currentPlayerIndex + 1) % state.players.length];
+
+      dom.turnValue.textContent = activePlayer.name;
+      dom.turnCaption.textContent = activePlayer.type === 'human'
+        ? `Şimdi sen oynuyorsun. Sonraki sırada ${nextPlayer.name} var.`
+        : `${activePlayer.name} oynuyor. Sıra yeniden sana gelmeden önce tahtayı izle.`;
+      dom.progressValue.textContent = `${progress}%`;
+      dom.tournamentValue.textContent = state.tournament.active
+        ? `${Math.min(state.tournament.round + 1, state.tournament.totalRounds)}/${state.tournament.totalRounds}`
+        : 'Standart maç';
+
+      dom.boardTitle.textContent = `${state.rows} x ${state.cols} Tahta`;
+      dom.boardSubtitle.textContent = `${getSettingLabel('mapMode', matchConfig.mapMode)} harita • ${getSettingLabel('difficulty', matchConfig.difficulty)} AI • ${getSettingLabel('gameSpeed', matchConfig.gameSpeed)} tempo`;
+    }
+
+    function updateUI() {
+      if (!state.gameStarted) {
+        renderHomeSummary();
+        renderHistoryPanel();
+        renderStatus();
+        return;
+      }
+
+      const counts = countOwned(state.board);
+      renderTopSummary(counts);
+      renderScoreStrip(counts);
+      renderPalette();
+      renderBoard();
+      renderHistoryPanel();
+      renderHomeSummary();
+      renderStatus();
+    }
+
+    function withAudio(callback) {
+      if (!audioCtx || !state.settings.soundEnabled) return;
+      audioCtx.resume().catch(() => {}).then(callback);
+    }
+
+    function playTone(frequency, duration = 0.22, volume = 0.28, type = 'sine') {
+      withAudio(() => {
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.type = type;
+        oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        gainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + duration);
+      });
+    }
+
+    function playSequence(notes) {
+      withAudio(() => {
+        let offset = 0;
+        for (const note of notes) {
+          const oscillator = audioCtx.createOscillator();
+          const gainNode = audioCtx.createGain();
+          oscillator.type = note.type || 'sine';
+          oscillator.frequency.setValueAtTime(note.freq, audioCtx.currentTime + offset);
+          oscillator.connect(gainNode);
+          gainNode.connect(audioCtx.destination);
+          gainNode.gain.setValueAtTime(note.volume || 0.22, audioCtx.currentTime + offset);
+          gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + offset + (note.duration || 0.18));
+          oscillator.start(audioCtx.currentTime + offset);
+          oscillator.stop(audioCtx.currentTime + offset + (note.duration || 0.18));
+          offset += (note.duration || 0.18) + 0.03;
+        }
+      });
+    }
+
+    function playMoveSound(player) {
+      const base = player.type === 'human' ? 820 : 520;
+      playTone(base + (player.id * 20), 0.16, 0.22, player.type === 'human' ? 'sine' : 'triangle');
+    }
+
+    function playGameOverSound(result) {
+      if (result === 'win') {
+        playSequence([
+          { freq: 523, duration: 0.15, volume: 0.24 },
+          { freq: 659, duration: 0.15, volume: 0.24 },
+          { freq: 784, duration: 0.26, volume: 0.28 }
+        ]);
+        return;
+      }
+
+      if (result === 'lose') {
+        playSequence([
+          { freq: 392, duration: 0.18, volume: 0.22, type: 'triangle' },
+          { freq: 330, duration: 0.18, volume: 0.22, type: 'triangle' },
+          { freq: 262, duration: 0.28, volume: 0.24, type: 'triangle' }
+        ]);
+        return;
+      }
+
+      playSequence([
+        { freq: 440, duration: 0.16, volume: 0.2 },
+        { freq: 440, duration: 0.16, volume: 0.2 }
+      ]);
+    }
+
+    function clearAiTimer() {
+      if (state.aiTimer) {
+        clearTimeout(state.aiTimer);
+        state.aiTimer = null;
+      }
+    }
+
+    function applyMove(player, color) {
+      absorb(state.board, player.id, color);
+      player.color = color;
+      updateUI();
+
+      if (!state.gameOver) {
+        dom.board.classList.add('flash');
+        playMoveSound(player);
+        setTimeout(() => dom.board.classList.remove('flash'), 340);
+      }
+
+      checkGameOver();
+    }
+
+    function getRanking(counts) {
+      return state.players
+        .map((player) => ({ ...player, score: counts.scores[player.id] || 0 }))
+        .sort((a, b) => b.score - a.score);
+    }
+
+    function pushHistory(title, counts) {
+      const matchConfig = state.matchConfig;
+      const ranking = getRanking(counts);
+      const scoreLine = ranking.map((entry) => `${entry.name}: ${entry.score}`).join(' | ');
+      state.history.push({
+        title,
+        playerCount: matchConfig.playerCount,
+        size: `${state.rows}x${state.cols}`,
+        mapMode: getSettingLabel('mapMode', matchConfig.mapMode),
+        difficulty: getSettingLabel('difficulty', matchConfig.difficulty),
+        scoreLine,
+        finishedAt: Date.now()
+      });
+
+      if (state.history.length > 24) {
+        state.history = state.history.slice(-24);
+      }
+
+      persistHistory();
+    }
+
+    function resetTournamentState() {
+      state.tournament.active = false;
+      state.tournament.round = 0;
+      state.tournament.playerWins = 0;
+      state.tournament.aiWins = 0;
+      state.tournament.draws = 0;
+    }
+
+    function renderGameOverTable(rows) {
+      dom.gameOverScore.innerHTML = rows.map((row, index) => `
+        <div class="gameover-row ${row.top || index === 0 ? 'is-top' : ''}">
+          <span class="gameover-label">${row.label}</span>
+          <strong class="gameover-value">${row.value}</strong>
+        </div>
+      `).join('');
+    }
+
+    function showGameOver(title, copy, scoreRows) {
+      dom.gameOverTitle.textContent = title;
+      dom.gameOverCopy.textContent = copy;
+      renderGameOverTable(scoreRows);
+      openPanel('gameover');
+    }
+
+    function finishTournamentRound(result) {
+      if (!state.tournament.active) return;
+
+      if (result === 'win') state.tournament.playerWins++;
+      else if (result === 'lose') state.tournament.aiWins++;
+      else state.tournament.draws++;
+
+      state.tournament.round++;
+
+      if (state.tournament.round >= state.tournament.totalRounds) {
+        const summary = `Turnuva tamamlandı. Sen: ${state.tournament.playerWins}, AI: ${state.tournament.aiWins}, Beraberlik: ${state.tournament.draws}.`;
+        state.tournament.active = false;
+        const tournamentRows = [
+          { label: 'Sen', value: String(state.tournament.playerWins), top: state.tournament.playerWins > state.tournament.aiWins },
+          { label: 'AI', value: String(state.tournament.aiWins), top: state.tournament.aiWins > state.tournament.playerWins },
+          { label: 'Beraberlik', value: String(state.tournament.draws) }
+        ];
+
+        setTimeout(() => {
+          if (state.tournament.playerWins > state.tournament.aiWins) {
+            showGameOver('Turnuva galibi sensin', summary, tournamentRows);
+          } else if (state.tournament.aiWins > state.tournament.playerWins) {
+            showGameOver('Turnuva AI tarafında kaldı', summary, tournamentRows);
+          } else {
+            showGameOver('Turnuva berabere bitti', summary, tournamentRows);
+          }
+        }, 320);
+      } else {
+        setTimeout(() => {
+          initializeMatch();
+          setStatus(`Turnuva devam ediyor. Tur ${state.tournament.round + 1}/${state.tournament.totalRounds} başladı.`, 'neutral');
+        }, 1100);
+      }
+    }
+
+    function isGameFinished(counts) {
+      return counts.neutral === 0;
+    }
+
+    function checkGameOver() {
+      const counts = countOwned(state.board);
+      if (!isGameFinished(counts)) return false;
+
+      clearAiTimer();
+      state.gameOver = true;
+      renderPalette();
+
+      const ranking = getRanking(counts);
+      const leader = ranking[0];
+      const runnerUp = ranking[1];
+      const draw = runnerUp && leader.score === runnerUp.score;
+
+      let result = 'draw';
+      let title = 'Maç berabere';
+      let copy = ranking.map((player) => `${player.name}: ${player.score}`).join(' • ');
+      let historyTitle = 'Berabere';
+
+      if (!draw) {
+        if (leader.id === 1) {
+          result = 'win';
+          title = 'Kazandın';
+          copy = `Tahtayı kontrol ettin. ${leader.score} alanla maçı önde bitirdin.`;
+          historyTitle = 'Sen kazandın';
+          setStatus(`Maç bitti. ${leader.score} alanla kazandın.`, 'success');
+        } else {
+          result = 'lose';
+          title = `${leader.name} kazandı`;
+          copy = `${leader.name} maçı ${leader.score} alanla kapattı.`;
+          historyTitle = `${leader.name} kazandı`;
+          setStatus(`Maç bitti. ${leader.name} öne geçti.`, 'danger');
+        }
+      } else {
+        setStatus('Maç berabere bitti.', 'neutral');
+      }
+
+      if (!state.gameOverShown) {
+        state.gameOverShown = true;
+        pushHistory(historyTitle, counts);
+        playGameOverSound(result);
+        updateUI();
+
+        if (!state.tournament.active) {
+          const scoreRows = ranking.map((player, index) => ({
+            label: player.name,
+            value: String(player.score),
+            top: !draw && index === 0
+          }));
+          setTimeout(() => showGameOver(title, copy, scoreRows), 220);
+        }
+
+        finishTournamentRound(result);
+      }
+
+      return true;
+    }
+
+    function queueAiTurn() {
+      clearAiTimer();
+      state.aiTimer = setTimeout(() => {
+        state.aiTimer = null;
+        handleAiTurn();
+      }, getAiDelay());
+    }
+
+    function advanceTurn() {
+      state.currentPlayerIndex = (state.currentPlayerIndex + 1) % state.players.length;
+      updateUI();
+
+      if (state.gameOver) return;
+      const nextPlayer = getActivePlayer();
+
+      if (nextPlayer.type === 'ai') {
+        setStatus(`${nextPlayer.name} düşünüyor...`, 'neutral');
+        queueAiTurn();
+      } else {
+        setStatus('Sıra sende. Bir renk seç.', 'neutral');
+      }
+    }
+
+    function handleHumanMove(color) {
+      const activePlayer = getActivePlayer();
+      if (state.gameOver || activePlayer.type !== 'human') return;
+
+      const validColors = new Set(getValidColorsForPlayer(activePlayer));
+      if (!validColors.has(color)) return;
+
+      applyMove(activePlayer, color);
+      if (!state.gameOver) {
+        advanceTurn();
+      }
+    }
+
+    function handleAiTurn() {
+      const activePlayer = getActivePlayer();
+      if (state.gameOver || activePlayer.type !== 'ai') return;
+
+      const move = getAiMove(activePlayer);
+      if (!move) {
+        state.gameOver = true;
+        setStatus('AI geçerli hamle üretemedi. Maç sonlandırıldı.', 'danger');
+        updateUI();
+        return;
+      }
+
+      applyMove(activePlayer, move.color);
+      if (!state.gameOver) {
+        advanceTurn();
+      }
+    }
+
+    function initializeMatch() {
+      clearAiTimer();
+      closePanel('gameover');
+
+      const { rows, cols } = resolveBoardSizeSetting(state.settings.boardSize);
+      state.rows = rows;
+      state.cols = cols;
+      state.matchConfig = { ...state.settings };
+      state.players = createPlayers(state.settings.playerCount);
+      state.currentPlayerIndex = 0;
+      state.gameStarted = true;
+      state.gameOver = false;
+      state.gameOverShown = false;
+
+      applyThemePalette();
+      applyInterfaceAccent();
+      setCellSize(rows, cols, state.matchConfig.boardSize);
+
+      state.board = createBoard(rows, cols, state.settings.mapMode);
+      state.players.forEach((player) => absorb(state.board, player.id, player.color));
+
+      dom.boardWrap.scrollTop = 0;
+      dom.boardWrap.scrollLeft = 0;
+
+      updateUI();
+
+      if (state.tournament.active) {
+        setStatus(`Turnuva başladı. Tur ${state.tournament.round + 1}/${state.tournament.totalRounds}.`, 'neutral');
+      } else {
+        setStatus('Yeni maç başladı. Bir renk seçerek başla.', 'neutral');
+      }
+    }
+
+    function startConfiguredGame() {
+      resetTournamentState();
+      if (state.settings.tournamentMode) {
+        state.tournament.active = true;
+      }
+      closePanel('settings');
+      showScreen('game');
+      initializeMatch();
+    }
+
+    function restartCurrentMatch() {
+      if (!state.tournament.active) {
+        resetTournamentState();
+      }
+      initializeMatch();
+      showScreen('game');
+    }
+
+    function handleOverlayClicks() {
+      Object.entries(dom.overlays).forEach(([name, overlay]) => {
+        overlay.addEventListener('click', (event) => {
+          if (event.target === overlay) {
+            closePanel(name);
+          }
+        });
+      });
+    }
+
+    function bindEvents() {
+      dom.homeStartBtn.addEventListener('click', () => {
+        startConfiguredGame();
+      });
+
+      dom.homeSettingsBtn.addEventListener('click', () => {
+        openPanel('settings');
+      });
+
+      dom.resumeGameBtn.addEventListener('click', () => {
+        showScreen('game');
+      });
+
+      dom.newMatchBtn.addEventListener('click', () => {
+        openPanel('settings');
+      });
+
+      dom.openHelpBtn.addEventListener('click', () => {
+        openPanel('help');
+      });
+
+      dom.pauseBtn.addEventListener('click', () => {
+        openPanel('settings');
+      });
+
+      dom.historyBtn.addEventListener('click', () => {
+        openPanel('history');
+      });
+
+      dom.goHomeBtn.addEventListener('click', () => {
+        showScreen('home');
+      });
+
+      dom.restartMatchBtn.addEventListener('click', () => {
+        restartCurrentMatch();
+      });
+
+      dom.centerBoardBtn.addEventListener('click', () => {
+        dom.boardWrap.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      });
+
+      dom.saveSettingsBtn.addEventListener('click', () => {
+        commitSettings({ showStatus: true });
+        closePanel('settings');
+      });
+
+      dom.startFromSettingsBtn.addEventListener('click', () => {
+        commitSettings();
+        startConfiguredGame();
+      });
+
+      dom.settingsTournamentMode.addEventListener('change', updateSettingsPrimaryButton);
+      dom.settingsColorTheme.addEventListener('change', updateSettingsPrimaryButton);
+
+      dom.clearHistoryBtn.addEventListener('click', () => {
+        state.history = [];
+        persistHistory();
+        renderHistoryPanel();
+        renderHomeSummary();
+      });
+
+      dom.gameOverRestartBtn.addEventListener('click', () => {
+        closePanel('gameover');
+        restartCurrentMatch();
+      });
+
+      dom.gameOverHomeBtn.addEventListener('click', () => {
+        closePanel('gameover');
+        showScreen('home');
+      });
+
+      document.addEventListener('click', (event) => {
+        const closeButton = event.target.closest('[data-close-panel]');
+        if (!closeButton) return;
+        closePanel(closeButton.getAttribute('data-close-panel'));
+      });
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && state.openPanel) {
+          closePanel(state.openPanel);
+        }
+      });
+
+      window.addEventListener('resize', () => {
+        if (!state.gameStarted) return;
+        setCellSize(state.rows, state.cols, state.matchConfig.boardSize);
+      });
+
+      handleOverlayClicks();
+    }
+
+    function init() {
+      loadPersistedState();
+      applyThemePalette();
+      applyInterfaceAccent();
+      syncSettingsForm();
+      bindEvents();
+      renderHomeSummary();
+      renderHistoryPanel();
+      renderStatus();
+      showScreen('home');
+    }
+
+    init();
+  </script>
+</body>
+</html>
