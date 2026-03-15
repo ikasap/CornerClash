@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">Corner Clash App Icon</title>
+  <desc id="desc">A premium strategy game icon with four colored corners converging on a glowing center.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#09172a"/>
+      <stop offset="55%" stop-color="#0b1424"/>
+      <stop offset="100%" stop-color="#050a13"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="45%" r="62%">
+      <stop offset="0%" stop-color="#133657"/>
+      <stop offset="55%" stop-color="#09172a" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#050a13" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="frame" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#30445f"/>
+      <stop offset="100%" stop-color="#101b2d"/>
+    </linearGradient>
+    <linearGradient id="beam-tl" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22c55e" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#22c55e" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="beam-tr" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2dd4bf" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#2dd4bf" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="beam-bl" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="beam-br" x1="100%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#fb923c" stop-opacity="0.92"/>
+      <stop offset="100%" stop-color="#fb923c" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="center-core" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fde68a"/>
+      <stop offset="60%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </radialGradient>
+    <filter id="soft-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#000000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <rect width="1024" height="1024" rx="248" fill="url(#bg)"/>
+  <rect width="1024" height="1024" rx="248" fill="url(#glow)"/>
+
+  <g filter="url(#soft-shadow)">
+    <rect x="112" y="112" width="800" height="800" rx="184" fill="#081220"/>
+    <rect x="112" y="112" width="800" height="800" rx="184" fill="none" stroke="url(#frame)" stroke-width="10"/>
+  </g>
+
+  <g opacity="0.18" stroke="#8fb2d8" stroke-width="6">
+    <path d="M256 208V816"/>
+    <path d="M384 208V816"/>
+    <path d="M512 208V816"/>
+    <path d="M640 208V816"/>
+    <path d="M768 208V816"/>
+    <path d="M208 256H816"/>
+    <path d="M208 384H816"/>
+    <path d="M208 512H816"/>
+    <path d="M208 640H816"/>
+    <path d="M208 768H816"/>
+  </g>
+
+  <g opacity="0.82">
+    <path d="M236 236L512 512" stroke="url(#beam-tl)" stroke-width="72" stroke-linecap="round"/>
+    <path d="M788 236L512 512" stroke="url(#beam-tr)" stroke-width="72" stroke-linecap="round"/>
+    <path d="M236 788L512 512" stroke="url(#beam-bl)" stroke-width="72" stroke-linecap="round"/>
+    <path d="M788 788L512 512" stroke="url(#beam-br)" stroke-width="72" stroke-linecap="round"/>
+  </g>
+
+  <g>
+    <circle cx="238" cy="238" r="76" fill="#16a34a"/>
+    <circle cx="238" cy="238" r="54" fill="#d1fae5" opacity="0.92"/>
+    <circle cx="786" cy="238" r="76" fill="#14b8a6"/>
+    <circle cx="786" cy="238" r="54" fill="#ccfbf1" opacity="0.92"/>
+    <circle cx="238" cy="786" r="76" fill="#3b82f6"/>
+    <circle cx="238" cy="786" r="54" fill="#dbeafe" opacity="0.92"/>
+    <circle cx="786" cy="786" r="76" fill="#fb923c"/>
+    <circle cx="786" cy="786" r="54" fill="#ffedd5" opacity="0.92"/>
+  </g>
+
+  <g transform="translate(512 512)">
+    <circle r="130" fill="#ffffff" opacity="0.07"/>
+    <circle r="102" fill="#ffffff" opacity="0.08"/>
+    <rect x="-82" y="-82" width="164" height="164" rx="42" transform="rotate(45)" fill="url(#center-core)" stroke="#fff7d6" stroke-width="14"/>
+    <path d="M-24 -54H22C54 -54 72 -38 72 -10C72 18 52 40 18 40H-10V72H-48V-54H-24ZM-10 -24V10H18C28 10 34 4 34 -7C34 -18 28 -24 18 -24H-10Z" fill="#09172a"/>
+  </g>
+</svg>
